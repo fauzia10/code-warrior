@@ -96,25 +96,87 @@ function showToast(message, type = 'info') {
 // Usage: showDamageText(25, 'monster', event)
 function showDamageText(amount, target, e) {
   const el = document.createElement('div');
-  el.className = `damage-text damage-to-${target}`;
-  el.textContent = target === 'monster' ? `-${amount} ⚔️` : `-${amount} 💔`;
+  
+  // Custom text and color mapping
+  let text = '';
+  let colorClass = '';
+  
+  if (target === 'monster') {
+    text = `-${amount} HP ⚔️`;
+    colorClass = 'damage-to-monster';
+  } else if (target === 'player') {
+    text = `-${amount} HP 💔`;
+    colorClass = 'damage-to-player';
+  } else if (target === 'xp') {
+    text = `+${amount} XP ⭐`;
+    colorClass = 'xp-gold';
+  } else if (target === 'coins') {
+    text = `+${amount} COINS 💰`;
+    colorClass = 'coins-gold';
+  } else {
+    text = `${amount}`;
+    colorClass = 'damage-to-monster';
+  }
+  
+  el.className = `damage-text ${colorClass}`;
+  el.textContent = text;
 
-  // Random x offset so multiple texts don't overlap
-  const x = (e?.clientX ?? window.innerWidth / 2) + (Math.random() * 40 - 20);
-  const y = (e?.clientY ?? window.innerHeight / 2) - 20;
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight / 2;
+  
+  // Try to find target positions on the battle stage
+  if (target === 'monster') {
+    const monsterEl = document.getElementById('battle-monster-emoji');
+    if (monsterEl) {
+      const rect = monsterEl.getBoundingClientRect();
+      x = rect.left + rect.width / 2 + (Math.random() * 40 - 20);
+      y = rect.top + (Math.random() * 20 - 10);
+    }
+  } else if (target === 'player') {
+    const playerEl = document.getElementById('battle-player-emoji-visual');
+    if (playerEl) {
+      const rect = playerEl.getBoundingClientRect();
+      x = rect.left + rect.width / 2 + (Math.random() * 40 - 20);
+      y = rect.top + (Math.random() * 20 - 10);
+    }
+  } else if (target === 'xp' || target === 'coins') {
+    const playerEl = document.getElementById('battle-player-emoji-visual');
+    if (playerEl) {
+      const rect = playerEl.getBoundingClientRect();
+      x = rect.left + rect.width / 2 + (Math.random() * 40 - 20);
+      y = rect.top - 20 + (Math.random() * 20 - 10);
+    }
+  } else if (e) {
+    x = e.clientX;
+    y = e.clientY;
+  }
+
+  el.style.position = 'fixed';
   el.style.left = `${x}px`;
   el.style.top  = `${y}px`;
+  el.style.transform = 'translate(-50%, -50%)';
+  
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1300);
+  setTimeout(() => el.remove(), 1200);
 }
 
 // ── HP bar color update ───────────────────────────────────────────────────
 function updateHpBar(barEl, current, max) {
   const pct = Math.max(0, Math.min(100, (current / max) * 100));
   barEl.style.width = `${pct}%`;
-  if (pct > 60)      barEl.style.background = 'var(--hp-high)';
-  else if (pct > 30) barEl.style.background = 'var(--hp-mid)';
-  else               barEl.style.background = 'var(--hp-low)';
+  
+  // Reset flashing class
+  barEl.classList.remove('hp-flash-red');
+  barEl.style.backgroundImage = 'none'; // clear gradients
+  
+  if (pct >= 50) {
+    barEl.style.backgroundColor = '#2ecc71'; // Green (#2ecc71)
+  } else if (pct >= 20) {
+    barEl.style.backgroundColor = '#f1c40f'; // Yellow (#f1c40f)
+  } else {
+    barEl.style.backgroundColor = '#e74c3c'; // Red (#e74c3c)
+    barEl.classList.add('hp-flash-red');
+  }
 }
 
 // ── Format a date string nicely ───────────────────────────────────────────

@@ -155,6 +155,12 @@ function setupBattleHud(data) {
   document.getElementById('battle-player-hp-text').textContent = `${state.playerHp}/${state.playerMaxHp}`;
   updateHpBar(document.getElementById('battle-player-hp-bar'), state.playerHp, state.playerMaxHp);
 
+  // Player stage visual
+  if (document.getElementById('battle-player-emoji-visual'))
+    document.getElementById('battle-player-emoji-visual').textContent = user.avatar || '🧙';
+  if (document.getElementById('battle-player-name-visual'))
+    document.getElementById('battle-player-name-visual').textContent = user.username;
+
   // Monster side
   document.getElementById('battle-monster-name-hud').textContent = m.name;
   document.getElementById('battle-monster-hp-text').textContent   = `${m.hp}/${m.hp}`;
@@ -259,9 +265,11 @@ async function selectAnswer(letter) {
       // Wrong: show which was correct, highlight player taking damage
       document.getElementById(`btn-${letter}`).classList.add('wrong');
       document.getElementById(`btn-${data.correctOption}`).classList.add('revealed-correct');
-      document.querySelector('.battle-arena').classList.add('hurt-flash');
+      document.querySelector('.battle-arena').classList.add('hurt-flash', 'screen-shake');
       showDamageText(data.damage, 'player', null);
-      setTimeout(() => document.querySelector('.battle-arena').classList.remove('hurt-flash'), 600);
+      setTimeout(() => {
+        document.querySelector('.battle-arena').classList.remove('hurt-flash', 'screen-shake');
+      }, 600);
 
       showToast(`Wrong! -${data.damage} HP 💔`, 'error');
     }
@@ -354,6 +362,12 @@ async function endBattle(outcome) {
       banner.innerHTML = `<h2>LEVEL UP!</h2><p>You reached Level ${data.newLevel}! +10 Max HP 🎉</p>`;
       document.body.appendChild(banner);
       setTimeout(() => banner.remove(), 2600);
+    }
+
+    // Show float-up indicators for rewards on win
+    if (outcome === 'win') {
+      showDamageText(data.xpGained, 'xp', null);
+      setTimeout(() => showDamageText(data.coinsEarned, 'coins', null), 400);
     }
 
     // Show result overlay

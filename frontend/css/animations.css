@@ -7,15 +7,17 @@
 .damage-text {
   position: fixed;
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 0.8rem;
   font-weight: 700;
   pointer-events: none;
   z-index: 500;
   animation: floatUp 1.2s ease forwards;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  text-shadow: 2px 2px 0px #000000;
 }
-.damage-text.damage-to-monster { color: #fcd34d; }
-.damage-text.damage-to-player  { color: #f87171; }
+.damage-text.damage-to-monster { color: #f1c40f; text-shadow: 2px 2px 0px #000000, 0 0 10px rgba(241,196,15,0.6); }
+.damage-text.damage-to-player  { color: #e74c3c; text-shadow: 2px 2px 0px #000000, 0 0 10px rgba(231,76,60,0.6); }
+.damage-text.xp-gold           { color: #ffd700; text-shadow: 2px 2px 0px #000000, 0 0 10px rgba(255,215,0,0.6); }
+.damage-text.coins-gold        { color: #f1c40f; text-shadow: 2px 2px 0px #000000, 0 0 10px rgba(241,196,15,0.6); }
 
 @keyframes floatUp {
   0%   { transform: translateY(0) scale(1);    opacity: 1; }
@@ -54,52 +56,91 @@
 
 /* ── Answer Button States ─────────────────────────────────────────────────── */
 .answer-btn {
-  position: relative;
-  overflow: hidden;
-  transition: all var(--transition);
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  background: #1c1c2b;
+  color: #ffffff;
+  border: 4px solid #000000;
+  padding: 16px;
+  text-align: left;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 
+    inset -3px -3px 0px 0px #0c0c14, 
+    inset 3px 3px 0px 0px #2e2e42,
+    3px 3px 0px 0px rgba(0,0,0,0.6);
+  transition: transform 0.1s steps(2), box-shadow 0.1s steps(2);
 }
-.answer-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0.05);
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-.answer-btn:hover::before { opacity: 1; }
 .answer-btn:hover {
+  background: #252538;
   transform: translateY(-2px);
-  border-color: var(--color-primary-light) !important;
+  box-shadow: 
+    inset -3px -3px 0px 0px #0c0c14, 
+    inset 3px 3px 0px 0px #373752,
+    3px 5px 0px 0px rgba(0,0,0,0.7);
 }
-.answer-btn:active { transform: scale(0.98); }
+.answer-btn:active {
+  transform: translateY(2px);
+  box-shadow: 
+    inset -3px -3px 0px 0px #373752, 
+    inset 3px 3px 0px 0px #0c0c14,
+    1px 1px 0px 0px rgba(0,0,0,0.6);
+}
 
 .answer-btn.correct {
-  background: rgba(16, 185, 129, 0.2) !important;
-  border-color: var(--color-green) !important;
-  color: var(--color-green-light) !important;
-  animation: correctPulse 0.4s ease;
+  background: #27ae60 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset -3px -3px 0px 0px #1e7e43, 
+    inset 3px 3px 0px 0px #2ecc71,
+    3px 3px 0px 0px rgba(0,0,0,0.6) !important;
+  animation: correctPulse 0.4s steps(3);
 }
 .answer-btn.wrong {
-  background: rgba(239, 68, 68, 0.2) !important;
-  border-color: var(--color-red) !important;
-  color: var(--color-red-light) !important;
-  animation: wrongShake 0.4s ease;
+  background: #c0392b !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset -3px -3px 0px 0px #962d22, 
+    inset 3px 3px 0px 0px #e74c3c,
+    3px 3px 0px 0px rgba(0,0,0,0.6) !important;
+  animation: wrongShake 0.4s steps(3);
 }
 .answer-btn.revealed-correct {
-  border-color: var(--color-green) !important;
-  color: var(--color-green) !important;
-  opacity: 0.7;
+  border-color: #27ae60 !important;
+  color: #2ecc71 !important;
+}
+
+/* ── Screen Shake & Flash Animations ─────────────────────────────────────── */
+.screen-shake {
+  animation: screenShake 0.4s ease-in-out;
+}
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-4px, 4px) rotate(-1deg); }
+  20%, 40%, 60%, 80% { transform: translate(4px, -4px) rotate(1deg); }
+}
+
+.hp-flash-red {
+  animation: flashRed 0.5s infinite alternate;
+}
+@keyframes flashRed {
+  0% { background-color: #e74c3c; box-shadow: 0 0 10px #e74c3c; }
+  100% { background-color: #8c1d1d; box-shadow: none; }
 }
 
 @keyframes correctPulse {
   0%   { transform: scale(1); }
-  50%  { transform: scale(1.04); }
+  50%  { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 @keyframes wrongShake {
   0%, 100% { transform: translateX(0); }
-  25%       { transform: translateX(-6px); }
-  75%       { transform: translateX(6px); }
+  25%       { transform: translateX(-8px); }
+  75%       { transform: translateX(8px); }
 }
 
 /* ── Monster Entrance ─────────────────────────────────────────────────────── */
