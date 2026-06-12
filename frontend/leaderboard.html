@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard — Code Warrior</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    /* ── Leaderboard Page Styles ──────────────────────────────────── */
+    .lb-header { text-align: center; padding: var(--space-xl) 0; }
+    .lb-header h1 { font-size: 2.5rem; }
+    .lb-header p  { color: var(--color-text-dim); margin-top: 8px; }
+
+    /* Podium */
+    .podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-2xl);
+    }
+    .podium-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .podium-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      position: relative;
+    }
+    .podium-avatar .crown {
+      position: absolute;
+      top: -14px;
+      font-size: 1.2rem;
+    }
+    .podium-base {
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: var(--space-md);
+      width: 110px;
+      font-family: var(--font-display);
+    }
+    .podium-1 .podium-avatar { border: 3px solid #fcd34d; background: rgba(245,158,11,0.15); }
+    .podium-2 .podium-avatar { border: 3px solid #94a3b8; background: rgba(148,163,184,0.1); }
+    .podium-3 .podium-avatar { border: 3px solid #f97316; background: rgba(249,115,22,0.1); }
+    .podium-1 .podium-base { background: linear-gradient(180deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)); border: 1px solid rgba(245,158,11,0.3); height: 120px; }
+    .podium-2 .podium-base { background: linear-gradient(180deg, rgba(148,163,184,0.15), rgba(148,163,184,0.03)); border: 1px solid rgba(148,163,184,0.2); height: 90px; }
+    .podium-3 .podium-base { background: linear-gradient(180deg, rgba(249,115,22,0.15), rgba(249,115,22,0.03)); border: 1px solid rgba(249,115,22,0.2); height: 70px; }
+    .podium-rank { font-size: 1.5rem; font-weight: 700; }
+    .podium-name { font-size: 0.85rem; font-weight: 600; color: var(--color-text-bright); text-align: center; }
+    .podium-level { font-size: 0.75rem; color: var(--color-text-dim); }
+
+    /* Leaderboard table */
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .lb-table th {
+      padding: 12px 20px;
+      text-align: left;
+      font-size: 0.75rem;
+      color: var(--color-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+    }
+    .lb-table td {
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+    .lb-table tr:hover td { background: rgba(124,58,237,0.05); }
+
+    .lb-rank { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; width: 50px; }
+    .lb-rank.rank-1 { color: #fcd34d; }
+    .lb-rank.rank-2 { color: #94a3b8; }
+    .lb-rank.rank-3 { color: #f97316; }
+
+    .lb-player {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    .lb-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .lb-name { font-weight: 600; }
+
+    .lb-level {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--color-primary-light);
+      border-radius: var(--radius-full);
+      padding: 3px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .my-row td { background: rgba(124,58,237,0.08) !important; border-color: rgba(124,58,237,0.3) !important; }
+    .my-row .lb-name::after { content: ' (You)'; color: var(--color-primary-light); font-size: 0.75rem; }
+
+    /* Refresh btn */
+    .lb-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-lg);
+    }
+  </style>
+</head>
+<body>
+  <div class="stars-bg"></div>
+  <div id="toast-container"></div>
+
+  <nav class="navbar">
+    <div class="navbar-brand">⚔️ <span>Code</span>Warrior</div>
+    <div class="navbar-links">
+      <a href="game.html">🏟️ Arena</a>
+      <a href="profile.html">👤 Profile</a>
+      <a href="leaderboard.html" class="active">🏆 Leaderboard</a>
+    </div>
+    <div class="navbar-user">
+      <div id="nav-avatar" class="navbar-avatar">🧙</div>
+      <span id="nav-username" style="font-weight:600"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="container">
+      <!-- Header -->
+      <div class="lb-header page-enter">
+        <h1>🏆 Hall of Warriors</h1>
+        <p>The greatest warriors who conquered the Placement Quest</p>
+      </div>
+
+      <!-- Podium (top 3) -->
+      <div class="podium" id="podium">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Table -->
+      <div class="lb-toolbar">
+        <h3 style="font-family:var(--font-display)">Full Rankings</h3>
+        <button class="btn btn-outline btn-sm" onclick="loadLeaderboard()">🔄 Refresh</button>
+      </div>
+
+      <div class="card" style="overflow:auto; margin-bottom: var(--space-2xl);">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Warrior</th>
+              <th>Level</th>
+              <th>XP</th>
+              <th>Monsters Defeated</th>
+              <th>Correct Answers</th>
+            </tr>
+          </thead>
+          <tbody id="lb-body">
+            <tr><td colspan="6" class="text-dim text-center" style="padding:40px">
+              <div class="spinner" style="width:40px;height:40px;margin:0 auto 12px"></div>
+              Loading rankings...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/leaderboard.js"></script>
+</body>
+</html>

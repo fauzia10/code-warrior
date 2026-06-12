@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code Warrior: The Placement Quest — Login</title>
+  <meta name="description" content="Fight monsters by answering coding and aptitude questions. Level up your skills. Conquer the placement quest!" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    /* ── Landing Page Specific Styles ──────────────────────────────── */
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    /* Left: Hero panel */
+    .hero-panel {
+      background: var(--gradient-hero);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-2xl);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 40% 50%, rgba(124,58,237,0.25) 0%, transparent 70%);
+    }
+    .hero-logo {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-logo .sword { font-size: 4rem; display: block; margin-bottom: 16px; animation: swordFloat 3s ease-in-out infinite; }
+    @keyframes swordFloat {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50%       { transform: translateY(-15px) rotate(5deg); }
+    }
+    .hero-logo .title-line1 { color: var(--color-text-bright); display: block; }
+    .hero-logo .title-line2 { color: var(--color-primary-light); display: block; }
+    .hero-logo .title-line3 { color: var(--color-gold); font-size: 1.2rem; font-weight: 400; display: block; margin-top: 8px; }
+    .hero-tagline {
+      color: var(--color-text-dim);
+      text-align: center;
+      max-width: 340px;
+      margin-top: var(--space-lg);
+      line-height: 1.7;
+      position: relative; z-index: 1;
+    }
+    .hero-features {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-top: var(--space-xl);
+      position: relative; z-index: 1;
+    }
+    .hero-feature {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.9rem;
+      color: var(--color-text);
+    }
+    .hero-feature .icon { font-size: 1.2rem; }
+
+    /* Right: Auth panel */
+    .auth-panel {
+      background: var(--color-bg-2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-2xl);
+      position: relative;
+      overflow-y: auto;
+    }
+    .auth-container { width: 100%; max-width: 400px; }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      margin-bottom: var(--space-xl);
+      border: 1px solid var(--color-border);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: var(--radius-full);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+      background: transparent;
+      border: none;
+    }
+    .auth-tab.active {
+      background: var(--gradient-primary);
+      color: white;
+      box-shadow: 0 2px 12px var(--color-primary-glow);
+    }
+
+    /* Form panels */
+    .auth-form-panel { display: none; flex-direction: column; gap: var(--space-md); }
+    .auth-form-panel.active { display: flex; animation: pageEnter 0.3s ease; }
+
+    .auth-heading { margin-bottom: var(--space-sm); }
+    .auth-heading h2 { font-size: 1.6rem; }
+    .auth-heading p { color: var(--color-text-dim); font-size: 0.9rem; margin-top: 4px; }
+
+    .avatar-select {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      margin-top: var(--space-xs);
+    }
+    .avatar-option {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .avatar-option:hover, .avatar-option.selected {
+      border-color: var(--color-primary);
+      background: rgba(124,58,237,0.2);
+      transform: scale(1.1);
+    }
+
+    /* Error message */
+    #login-error, #register-error { display: none; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .hero-panel { display: none; }
+      .auth-panel { padding: var(--space-lg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars-bg"></div>
+  <div id="toast-container"></div>
+
+  <div class="auth-page">
+    <!-- ── Left: Hero ── -->
+    <div class="hero-panel">
+      <div class="hero-logo">
+        <span class="sword">⚔️</span>
+        <span class="title-line1">Code Warrior</span>
+        <span class="title-line2">The Placement Quest</span>
+        <span class="title-line3">Battle your way to your dream job</span>
+      </div>
+      <p class="hero-tagline">
+        Answer coding and aptitude questions to defeat monsters, level up, and top the leaderboard. Your placement prep, gamified.
+      </p>
+      <div class="hero-features">
+        <div class="hero-feature"><span class="icon">🐉</span> Fight 14+ unique monsters</div>
+        <div class="hero-feature"><span class="icon">📚</span> 7 technical categories</div>
+        <div class="hero-feature"><span class="icon">🏆</span> Achievements & Leaderboard</div>
+        <div class="hero-feature"><span class="icon">⚡</span> XP, levels & coin rewards</div>
+        <div class="hero-feature"><span class="icon">💾</span> Progress auto-saved</div>
+      </div>
+    </div>
+
+    <!-- ── Right: Auth ── -->
+    <div class="auth-panel">
+      <div class="auth-container">
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+          <button class="auth-tab"        id="tab-register" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <div class="auth-form-panel active" id="panel-login">
+          <div class="auth-heading">
+            <h2>Welcome back, Warrior</h2>
+            <p>Login to resume your quest</p>
+          </div>
+
+          <div id="login-error" class="alert alert-error">
+            <span>⚠️</span><span id="login-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email</label>
+            <input type="email" id="login-email" class="form-input" placeholder="warrior@quest.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••" />
+          </div>
+
+          <button class="btn btn-primary btn-lg w-full" id="login-btn" onclick="handleLogin()">
+            <span id="login-btn-text">⚔️ Enter the Arena</span>
+            <span id="login-spinner" class="spinner hidden"></span>
+          </button>
+
+          <p class="text-center text-dim" style="font-size:0.85rem">
+            No account? <a href="#" onclick="switchTab('register')">Register here</a>
+          </p>
+        </div>
+
+        <!-- Register Form -->
+        <div class="auth-form-panel" id="panel-register">
+          <div class="auth-heading">
+            <h2>Create Your Warrior</h2>
+            <p>Begin your placement quest</p>
+          </div>
+
+          <div id="register-error" class="alert alert-error">
+            <span>⚠️</span><span id="register-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Choose Avatar</label>
+            <div class="avatar-select" id="avatar-select">
+              <div class="avatar-option selected" data-avatar="🧙" onclick="selectAvatar(this)">🧙</div>
+              <div class="avatar-option" data-avatar="🧝" onclick="selectAvatar(this)">🧝</div>
+              <div class="avatar-option" data-avatar="🧛" onclick="selectAvatar(this)">🧛</div>
+              <div class="avatar-option" data-avatar="🧟" onclick="selectAvatar(this)">🧟</div>
+              <div class="avatar-option" data-avatar="🐉" onclick="selectAvatar(this)">🐉</div>
+              <div class="avatar-option" data-avatar="🦸" onclick="selectAvatar(this)">🦸</div>
+              <div class="avatar-option" data-avatar="🧜" onclick="selectAvatar(this)">🧜</div>
+              <div class="avatar-option" data-avatar="🏹" onclick="selectAvatar(this)">🏹</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-username">Username</label>
+            <input type="text" id="reg-username" class="form-input" placeholder="DragonSlayer99" maxlength="20" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Email</label>
+            <input type="email" id="reg-email" class="form-input" placeholder="warrior@quest.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password <span class="text-dim">(min 6 chars)</span></label>
+            <input type="password" id="reg-password" class="form-input" placeholder="••••••••" />
+          </div>
+
+          <button class="btn btn-primary btn-lg w-full" id="register-btn" onclick="handleRegister()">
+            <span id="register-btn-text">🧙 Create Warrior</span>
+            <span id="register-spinner" class="spinner hidden"></span>
+          </button>
+
+          <p class="text-center text-dim" style="font-size:0.85rem">
+            Have an account? <a href="#" onclick="switchTab('login')">Login here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (localStorage.getItem('cw_token')) {
+      window.location.href = 'game.html';
+    }
+
+    function switchTab(tab) {
+      document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+      document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    }
+
+    function selectAvatar(el) {
+      document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const activePanel = document.querySelector('.auth-form-panel.active');
+        if (activePanel.id === 'panel-login') handleLogin();
+        else handleRegister();
+      }
+    });
+  </script>
+</body>
+</html>

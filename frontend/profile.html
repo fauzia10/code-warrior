@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — Code Warrior</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    .profile-hero {
+      background: linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(79,70,229,0.05) 100%);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+    .profile-avatar-area { text-align: center; }
+    .profile-avatar-big {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      border: 3px solid var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 0 30px var(--color-primary-glow);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin: 0 auto;
+    }
+    .profile-avatar-big:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--color-primary-glow); }
+    .avatar-hint { font-size: 0.7rem; color: var(--color-text-dim); margin-top: 6px; }
+
+    .profile-info { flex: 1; }
+    .profile-username { font-family: var(--font-display); font-size: 2rem; }
+    .profile-meta { color: var(--color-text-dim); font-size: 0.9rem; margin-top: 4px; display: flex; gap: var(--space-md); }
+    .profile-level {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gradient-primary);
+      color: white;
+      padding: 4px 16px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-top: 12px;
+    }
+
+    .xp-section { margin-top: var(--space-md); }
+    .xp-bar-track-lg {
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      margin-bottom: var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Achievements grid */
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Battle history table */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .history-table th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--color-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .history-table td {
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+    .history-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .outcome-win  { color: var(--color-green); font-weight: 700; }
+    .outcome-loss { color: var(--color-red);   font-weight: 700; }
+
+    /* Avatar picker modal */
+    .avatar-modal {
+      display: none;
+      position: fixed; inset: 0;
+      z-index: 800;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+    .avatar-modal.open { display: flex; animation: fadeInOverlay 0.2s ease; }
+    .avatar-modal-card {
+      background: var(--color-bg-card-2);
+      border: 1px solid var(--color-border-hover);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      width: 360px;
+      text-align: center;
+    }
+    .avatar-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin: var(--space-lg) 0;
+    }
+    .avatar-pick-opt {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      background: rgba(255,255,255,0.04);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin: 0 auto;
+    }
+    .avatar-pick-opt:hover, .avatar-pick-opt.selected {
+      border-color: var(--color-gold);
+      background: rgba(245,158,11,0.1);
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="stars-bg"></div>
+  <div id="toast-container"></div>
+
+  <nav class="navbar">
+    <div class="navbar-brand">⚔️ <span>Code</span>Warrior</div>
+    <div class="navbar-links">
+      <a href="game.html">🏟️ Arena</a>
+      <a href="profile.html" class="active">👤 Profile</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+    </div>
+    <div class="navbar-user">
+      <div id="nav-avatar" class="navbar-avatar">🧙</div>
+      <span id="nav-username" style="font-weight:600"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="container" style="padding-top: var(--space-lg);">
+      <!-- Profile hero -->
+      <div class="profile-hero page-enter">
+        <div class="profile-avatar-area">
+          <div class="profile-avatar-big" id="profile-avatar" onclick="openAvatarModal()" title="Click to change avatar">🧙</div>
+          <p class="avatar-hint">Click to change</p>
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-username" id="profile-username">Loading...</h1>
+          <div class="profile-meta">
+            <span id="profile-email">—</span>
+            <span>·</span>
+            <span>Joined <span id="profile-joined">—</span></span>
+          </div>
+          <div class="profile-level">⭐ Level <span id="profile-level">1</span></div>
+          <div class="xp-section">
+            <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--color-text-dim);margin-bottom:6px">
+              <span>XP</span>
+              <span id="profile-xp-label">0 / 100</span>
+            </div>
+            <div class="xp-bar-track-lg">
+              <div class="xp-bar-fill" id="profile-xp-bar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <h2 class="section-title">📊 Battle Stats</h2>
+      <div class="stat-grid" style="margin-bottom: var(--space-xl);">
+        <div class="stat-card"><div class="stat-value text-gold" id="stat-coins">0</div><div class="stat-label">💰 Coins</div></div>
+        <div class="stat-card"><div class="stat-value text-green" id="stat-defeated">0</div><div class="stat-label">👾 Defeated</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-battles">0</div><div class="stat-label">⚔️ Battles</div></div>
+        <div class="stat-card"><div class="stat-value text-primary" id="stat-winrate">0%</div><div class="stat-label">🏆 Win Rate</div></div>
+        <div class="stat-card"><div class="stat-value text-green" id="stat-correct">0</div><div class="stat-label">✅ Correct</div></div>
+        <div class="stat-card"><div class="stat-value text-red" id="stat-wrong">0</div><div class="stat-label">❌ Wrong</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-streak">0</div><div class="stat-label">🔥 Best Streak</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-hp">100</div><div class="stat-label">❤️ Current HP</div></div>
+      </div>
+
+      <!-- Achievements -->
+      <h2 class="section-title">🏅 Achievements</h2>
+      <div class="achievements-grid" id="achievements-grid">
+        <div class="text-dim text-center" style="grid-column:1/-1">Loading...</div>
+      </div>
+
+      <!-- Battle History -->
+      <h2 class="section-title">📜 Battle History</h2>
+      <div class="card" style="overflow:auto; margin-bottom: var(--space-2xl);">
+        <table class="history-table" id="history-table">
+          <thead>
+            <tr>
+              <th>Monster</th>
+              <th>Outcome</th>
+              <th>Correct / Total</th>
+              <th>XP Earned</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="5" class="text-dim text-center">Loading history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Avatar picker modal -->
+  <div class="avatar-modal" id="avatar-modal" onclick="closeAvatarModalOutside(event)">
+    <div class="avatar-modal-card">
+      <h3>Choose Your Avatar</h3>
+      <div class="avatar-modal-grid" id="avatar-modal-grid">
+        <div class="avatar-pick-opt" data-avatar="🧙" onclick="pickAvatar('🧙')">🧙</div>
+        <div class="avatar-pick-opt" data-avatar="🧝" onclick="pickAvatar('🧝')">🧝</div>
+        <div class="avatar-pick-opt" data-avatar="🧛" onclick="pickAvatar('🧛')">🧛</div>
+        <div class="avatar-pick-opt" data-avatar="🧟" onclick="pickAvatar('🧟')">🧟</div>
+        <div class="avatar-pick-opt" data-avatar="🐉" onclick="pickAvatar('🐉')">🐉</div>
+        <div class="avatar-pick-opt" data-avatar="🦸" onclick="pickAvatar('🦸')">🦸</div>
+        <div class="avatar-pick-opt" data-avatar="🧜" onclick="pickAvatar('🧜')">🧜</div>
+        <div class="avatar-pick-opt" data-avatar="🏹" onclick="pickAvatar('🏹')">🏹</div>
+        <div class="avatar-pick-opt" data-avatar="🧚" onclick="pickAvatar('🧚')">🧚</div>
+        <div class="avatar-pick-opt" data-avatar="🦊" onclick="pickAvatar('🦊')">🦊</div>
+        <div class="avatar-pick-opt" data-avatar="🐺" onclick="pickAvatar('🐺')">🐺</div>
+        <div class="avatar-pick-opt" data-avatar="🦅" onclick="pickAvatar('🦅')">🦅</div>
+      </div>
+      <button class="btn btn-outline w-full" onclick="closeAvatarModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

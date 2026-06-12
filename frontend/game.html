@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battle Arena — Code Warrior</title>
+  <meta name="description" content="Enter the battle arena and fight monsters by answering coding questions." />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    /* ── Game Page Layout ─────────────────────────────────────────── */
+    .game-page { background: var(--gradient-hero); }
+
+    /* ── Screens ──────────────────────────────────────────────────── */
+    .screen { display: none; min-height: calc(100vh - 70px); padding: var(--space-xl) 0; animation: pageEnter 0.4s ease; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* ── Monster Select Screen ────────────────────────────────────── */
+    .monster-select-header { text-align: center; margin-bottom: var(--space-xl); }
+    .monster-select-header h1 { font-size: 2.2rem; }
+    .monster-select-header p { color: var(--color-text-dim); margin-top: 8px; }
+
+    .category-filter {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: var(--space-lg);
+    }
+    .filter-btn {
+      padding: 7px 18px;
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--gradient-primary);
+      border-color: var(--color-primary);
+      color: white;
+    }
+
+    .monsters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: var(--space-md);
+      width: 100%;
+      max-width: 1000px;
+    }
+    .monster-card {
+      background: var(--gradient-dark);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .monster-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card), var(--shadow-glow);
+    }
+    .monster-card .monster-emoji { font-size: 3.5rem; filter: drop-shadow(0 0 8px rgba(124,58,237,0.5)); }
+    .monster-card .monster-name  { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; }
+    .monster-card .monster-category {
+      font-size: 0.75rem; color: var(--color-text-dim);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .monster-card .monster-stats {
+      display: flex; gap: var(--space-sm); align-items: center;
+      font-size: 0.8rem; color: var(--color-text-dim);
+    }
+    .monster-card .monster-desc {
+      font-size: 0.8rem; color: var(--color-text-dim); line-height: 1.5;
+    }
+    .monster-card .fight-btn {
+      margin-top: 4px;
+      padding: 8px 24px;
+      background: var(--gradient-primary);
+      color: white;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all var(--transition);
+    }
+    .monster-card:hover .fight-btn { box-shadow: 0 4px 16px var(--color-primary-glow); }
+    .monster-level-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(124,58,237,0.2);
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-full);
+      padding: 2px 10px;
+      font-size: 0.7rem; font-weight: 700; color: var(--color-primary-light);
+    }
+
+    /* ── Battle Screen ────────────────────────────────────────────── */
+    .battle-arena {
+      width: 100%; max-width: 800px;
+      display: flex; flex-direction: column; gap: var(--space-lg);
+    }
+
+    /* Player & Monster HUD */
+    .battle-hud {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: var(--space-md);
+      background: var(--gradient-dark);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .hud-player { display: flex; flex-direction: column; gap: 6px; }
+    .hud-player-name {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-display); font-weight: 600;
+    }
+    .hud-player-avatar { font-size: 1.8rem; }
+    .hud-vs {
+      font-family: var(--font-display); font-size: 1.4rem;
+      color: var(--color-text-dim); text-align: center;
+    }
+    .hud-monster { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .hud-monster-name {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-display); font-weight: 600;
+    }
+
+    /* Main battle area */
+    .battle-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+
+    /* Monster display */
+    .monster-display {
+      background: var(--gradient-dark);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      min-height: 250px;
+      position: relative;
+      overflow: hidden;
+    }
+    .monster-display::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.1) 0%, transparent 70%);
+    }
+    .battle-monster-emoji {
+      font-size: 7rem;
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 0 20px rgba(124,58,237,0.6));
+    }
+    .battle-monster-name {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+
+    /* Question area */
+    .question-area {
+      background: var(--gradient-dark);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .question-num { font-size: 0.8rem; color: var(--color-text-dim); }
+    .question-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--color-text-bright);
+      font-weight: 500;
+      min-height: 60px;
+    }
+    .answer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+    }
+    .answer-btn {
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text);
+      font-size: 0.85rem;
+      text-align: left;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .answer-btn .option-letter {
+      background: var(--gradient-primary);
+      color: white;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Explanation box */
+    .explanation-box {
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      border-left: 3px solid var(--color-primary);
+      background: rgba(124,58,237,0.08);
+      color: var(--color-text);
+      display: none;
+    }
+    .explanation-box.show { display: block; animation: pageEnter 0.3s ease; }
+
+    /* Bottom bar: streak + coins */
+    .battle-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--gradient-dark);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .streak-display { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .coins-display  { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .question-progress { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--color-text-dim); }
+
+    /* Next question button */
+    #next-question-btn {
+      margin-top: 8px;
+      display: none;
+    }
+    #next-question-btn.show { display: block; }
+
+    /* Flee button */
+    #flee-btn {
+      background: transparent;
+      border: 1px solid rgba(239,68,68,0.4);
+      color: var(--color-red);
+      border-radius: var(--radius-full);
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    #flee-btn:hover {
+      background: rgba(239,68,68,0.1);
+      border-color: var(--color-red);
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .battle-main { grid-template-columns: 1fr; }
+      .monsters-grid { grid-template-columns: 1fr 1fr; }
+      .answer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars-bg"></div>
+  <div id="toast-container"></div>
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar">
+    <div class="navbar-brand">⚔️ <span>Code</span>Warrior</div>
+    <div class="navbar-links">
+      <a href="game.html" class="active" id="nav-arena">🏟️ Arena</a>
+      <a href="profile.html" id="nav-profile">👤 Profile</a>
+      <a href="leaderboard.html" id="nav-leaderboard">🏆 Leaderboard</a>
+    </div>
+    <div class="navbar-user">
+      <div id="nav-avatar" class="navbar-avatar">🧙</div>
+      <span id="nav-username" style="font-weight:600"></span>
+      <span id="nav-level" class="badge badge-easy" style="margin-left:4px"></span>
+      <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page game-page">
+    <!-- ── Screen 1: Monster Select ── -->
+    <div class="screen active container" id="screen-select">
+      <div class="monster-select-header">
+        <h1>⚔️ Choose Your Battle</h1>
+        <p>Select a monster to fight. Each monster tests a different skill set.</p>
+      </div>
+
+      <!-- Player stats bar -->
+      <div class="card w-full" style="max-width:700px; margin-bottom: var(--space-lg);">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+          <div>
+            <div class="hp-bar-container">
+              <div class="hp-bar-label">
+                <span id="select-hp-label">❤️ HP</span>
+                <span id="select-hp-val">100/100</span>
+              </div>
+              <div class="hp-bar-track">
+                <div class="hp-bar-fill" id="select-hp-bar" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="hp-bar-container">
+              <div class="hp-bar-label">
+                <span>⚡ XP to Next Level</span>
+                <span id="select-xp-val">0/100</span>
+              </div>
+              <div class="hp-bar-track">
+                <div class="xp-bar-fill" id="select-xp-bar" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stat-grid mt-md" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="stat-card"><div class="stat-value" id="sel-level">1</div><div class="stat-label">Level</div></div>
+          <div class="stat-card"><div class="stat-value text-gold" id="sel-coins">50</div><div class="stat-label">Coins</div></div>
+          <div class="stat-card"><div class="stat-value text-green" id="sel-defeated">0</div><div class="stat-label">Defeated</div></div>
+          <div class="stat-card"><div class="stat-value text-primary" id="sel-streak">0</div><div class="stat-label">Best Streak</div></div>
+        </div>
+      </div>
+
+      <!-- Category filter -->
+      <div class="category-filter">
+        <button class="filter-btn active" onclick="filterMonsters('all', this)">All</button>
+        <button class="filter-btn" onclick="filterMonsters('programming_basics', this)">🖥️ Basics</button>
+        <button class="filter-btn" onclick="filterMonsters('arrays', this)">📊 Arrays</button>
+        <button class="filter-btn" onclick="filterMonsters('strings', this)">🔤 Strings</button>
+        <button class="filter-btn" onclick="filterMonsters('oop', this)">🏗️ OOP</button>
+        <button class="filter-btn" onclick="filterMonsters('dbms', this)">🗄️ DBMS</button>
+        <button class="filter-btn" onclick="filterMonsters('os', this)">⚙️ OS</button>
+        <button class="filter-btn" onclick="filterMonsters('aptitude', this)">🧠 Aptitude</button>
+      </div>
+
+      <div class="monsters-grid" id="monsters-grid">
+        <!-- Populated by JS -->
+        <div class="text-center text-dim" style="grid-column:1/-1; padding: var(--space-xl);">
+          <div class="spinner" style="width:40px;height:40px;margin:0 auto"></div>
+          <p style="margin-top:12px">Loading monsters...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Screen 2: Battle ── -->
+    <div class="screen container" id="screen-battle">
+      <div class="battle-arena">
+        <!-- HUD -->
+        <div class="battle-hud">
+          <div class="hud-player">
+            <div class="hud-player-name">
+              <span class="hud-player-avatar" id="battle-player-avatar">🧙</span>
+              <span id="battle-player-name">Warrior</span>
+            </div>
+            <div class="hp-bar-container">
+              <div class="hp-bar-label">
+                <span>❤️ HP</span>
+                <span id="battle-player-hp-text">100/100</span>
+              </div>
+              <div class="hp-bar-track">
+                <div class="hp-bar-fill" id="battle-player-hp-bar" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="hud-vs">VS</div>
+          <div class="hud-monster">
+            <div class="hud-monster-name">
+              <span id="battle-monster-name-hud">Monster</span>
+            </div>
+            <div class="hp-bar-container" style="align-items:flex-end">
+              <div class="hp-bar-label" style="flex-direction:row-reverse">
+                <span>💀 HP</span>
+                <span id="battle-monster-hp-text">100/100</span>
+              </div>
+              <div class="hp-bar-track" style="width:200px">
+                <div class="hp-bar-fill" id="battle-monster-hp-bar" style="width:100%; background: var(--color-red)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Battle Main -->
+        <div class="battle-main">
+          <!-- Left: Monster visual -->
+          <div class="monster-display" id="monster-display">
+            <div class="battle-monster-emoji monster-float" id="battle-monster-emoji">👾</div>
+            <div class="battle-monster-name" id="battle-monster-name">...</div>
+            <div class="badge badge-medium" id="battle-category-badge">category</div>
+          </div>
+
+          <!-- Right: Question -->
+          <div class="question-area">
+            <div class="question-header">
+              <span class="question-num" id="question-num">Question 1</span>
+              <span class="badge" id="question-difficulty-badge">easy</span>
+            </div>
+            <div class="question-text" id="question-text">Loading question...</div>
+            <div class="answer-grid" id="answer-grid">
+              <button class="answer-btn" id="btn-a" onclick="selectAnswer('a')">
+                <span class="option-letter">A</span><span id="opt-a"></span>
+              </button>
+              <button class="answer-btn" id="btn-b" onclick="selectAnswer('b')">
+                <span class="option-letter">B</span><span id="opt-b"></span>
+              </button>
+              <button class="answer-btn" id="btn-c" onclick="selectAnswer('c')">
+                <span class="option-letter">C</span><span id="opt-c"></span>
+              </button>
+              <button class="answer-btn" id="btn-d" onclick="selectAnswer('d')">
+                <span class="option-letter">D</span><span id="opt-d"></span>
+              </button>
+            </div>
+            <div class="explanation-box" id="explanation-box"></div>
+            <button class="btn btn-primary w-full" id="next-question-btn" onclick="loadNextQuestion()">
+              Next Question ➡️
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="battle-bottom">
+          <div class="streak-display">
+            🔥 Streak: <span id="battle-streak">0</span>
+          </div>
+          <div class="question-progress">
+            <span id="questions-answered">0</span> answered &nbsp;|&nbsp;
+            <span id="correct-count" class="text-green">0</span> correct
+          </div>
+          <div style="display:flex;gap:var(--space-md);align-items:center">
+            <div class="coins-display">💰 <span id="battle-coins">0</span></div>
+            <button id="flee-btn" onclick="fleeBattle()">🏃 Flee</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

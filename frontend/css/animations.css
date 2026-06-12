@@ -1,0 +1,295 @@
+/* frontend/css/animations.css */
+/* ─────────────────────────────────────────────────────────────────────────────
+   CODE WARRIOR — Battle Animations & Effects
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Floating Combat Text ─────────────────────────────────────────────────── */
+.damage-text {
+  position: fixed;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 500;
+  animation: floatUp 1.2s ease forwards;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+.damage-text.damage-to-monster { color: #fcd34d; }
+.damage-text.damage-to-player  { color: #f87171; }
+
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1);    opacity: 1; }
+  30%  { transform: translateY(-30px) scale(1.3); opacity: 1; }
+  100% { transform: translateY(-90px) scale(0.8); opacity: 0; }
+}
+
+/* ── Monster Shake (takes damage) ────────────────────────────────────────── */
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes shake {
+  10%, 90%  { transform: translateX(-2px); }
+  20%, 80%  { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-6px); }
+  40%, 60%  { transform: translateX(6px); }
+}
+
+/* ── Player Hurt Pulse ────────────────────────────────────────────────────── */
+.hurt-flash {
+  animation: hurtFlash 0.5s ease;
+}
+@keyframes hurtFlash {
+  0%, 100% { box-shadow: none; }
+  25%, 75%  { box-shadow: 0 0 40px rgba(239, 68, 68, 0.8), inset 0 0 40px rgba(239,68,68,0.2); }
+}
+
+/* ── Correct Answer Glow ──────────────────────────────────────────────────── */
+.correct-glow {
+  animation: correctGlow 0.6s ease;
+}
+@keyframes correctGlow {
+  0%, 100% { box-shadow: none; }
+  50%  { box-shadow: 0 0 50px rgba(16, 185, 129, 0.7), inset 0 0 30px rgba(16,185,129,0.15); }
+}
+
+/* ── Answer Button States ─────────────────────────────────────────────────── */
+.answer-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition);
+}
+.answer-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.05);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.answer-btn:hover::before { opacity: 1; }
+.answer-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary-light) !important;
+}
+.answer-btn:active { transform: scale(0.98); }
+
+.answer-btn.correct {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: var(--color-green) !important;
+  color: var(--color-green-light) !important;
+  animation: correctPulse 0.4s ease;
+}
+.answer-btn.wrong {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: var(--color-red) !important;
+  color: var(--color-red-light) !important;
+  animation: wrongShake 0.4s ease;
+}
+.answer-btn.revealed-correct {
+  border-color: var(--color-green) !important;
+  color: var(--color-green) !important;
+  opacity: 0.7;
+}
+
+@keyframes correctPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-6px); }
+  75%       { transform: translateX(6px); }
+}
+
+/* ── Monster Entrance ─────────────────────────────────────────────────────── */
+.monster-appear {
+  animation: monsterAppear 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes monsterAppear {
+  from { transform: scale(0) rotate(-10deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+/* ── Monster idle float ───────────────────────────────────────────────────── */
+.monster-float {
+  animation: monsterFloat 3s ease-in-out infinite;
+}
+@keyframes monsterFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+/* ── Monster death ────────────────────────────────────────────────────────── */
+.monster-die {
+  animation: monsterDie 0.8s ease forwards;
+}
+@keyframes monsterDie {
+  0%   { transform: scale(1) rotate(0deg);   opacity: 1; filter: brightness(1); }
+  40%  { transform: scale(1.3) rotate(15deg); opacity: 0.8; filter: brightness(3); }
+  100% { transform: scale(0) rotate(30deg);  opacity: 0;   filter: brightness(0); }
+}
+
+/* ── Particle explosion ───────────────────────────────────────────────────── */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 400;
+  border-radius: 50%;
+  animation: particleExplode var(--duration, 0.8s) ease forwards;
+}
+@keyframes particleExplode {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to   { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+
+/* ── Level-up banner ──────────────────────────────────────────────────────── */
+.levelup-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 600;
+  background: var(--gradient-dark);
+  border: 2px solid var(--color-gold);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl) var(--space-2xl);
+  text-align: center;
+  box-shadow: 0 0 60px var(--color-gold-glow);
+  animation: levelUpPop 2.5s ease forwards;
+}
+@keyframes levelUpPop {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  20%  { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  30%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  80%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+.levelup-banner h2 {
+  font-size: 3rem;
+  color: var(--color-gold);
+  text-shadow: 0 0 20px var(--color-gold-glow);
+}
+.levelup-banner p { color: var(--color-text-dim); margin-top: 8px; }
+
+/* ── Achievement unlock toast ─────────────────────────────────────────────── */
+.achievement-unlock {
+  position: fixed;
+  bottom: 80px; right: 24px;
+  z-index: 601;
+  background: var(--color-bg-card-2);
+  border: 2px solid var(--color-gold);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px var(--color-gold-glow);
+  animation: slideInRight 0.4s ease, fadeOut 0.4s ease 3.5s forwards;
+  min-width: 300px;
+}
+.achievement-unlock .icon { font-size: 2.5rem; }
+.achievement-unlock .title { font-size: 0.75rem; color: var(--color-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.achievement-unlock .name  { font-size: 1rem; font-weight: 600; color: var(--color-text-bright); margin-top: 2px; }
+.achievement-unlock .desc  { font-size: 0.8rem; color: var(--color-text-dim); }
+
+/* ── Streak fire indicator ────────────────────────────────────────────────── */
+.streak-fire {
+  animation: streakFire 0.5s ease;
+}
+@keyframes streakFire {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.3) rotate(5deg); }
+}
+
+/* ── Battle result overlay ────────────────────────────────────────────────── */
+.battle-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInOverlay 0.4s ease;
+}
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.battle-result-card {
+  background: var(--gradient-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+  max-width: 440px;
+  width: 90%;
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  border: 1px solid var(--color-border);
+}
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.battle-result-card.win  { border-color: var(--color-gold); box-shadow: 0 0 60px var(--color-gold-glow); }
+.battle-result-card.loss { border-color: var(--color-red);  box-shadow: 0 0 60px rgba(239,68,68,0.3); }
+.battle-result-emoji { font-size: 5rem; animation: bounceIn 0.5s 0.2s both; }
+@keyframes bounceIn {
+  from { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  to   { transform: scale(1); }
+}
+
+/* ── Question card entrance ───────────────────────────────────────────────── */
+.question-slide-in {
+  animation: questionSlideIn 0.4s ease;
+}
+@keyframes questionSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Timer pulse ──────────────────────────────────────────────────────────── */
+.timer-warning {
+  animation: timerPulse 0.5s ease infinite;
+}
+@keyframes timerPulse {
+  0%, 100% { color: var(--color-red); transform: scale(1); }
+  50%       { color: #ff6b6b;         transform: scale(1.1); }
+}
+
+/* ── Page transitions ─────────────────────────────────────────────────────── */
+.page-enter {
+  animation: pageEnter 0.4s ease;
+}
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Leaderboard row enter ────────────────────────────────────────────────── */
+.leaderboard-row-enter {
+  animation: rowEnter 0.4s ease both;
+}
+@keyframes rowEnter {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Pulsing ring (active player highlight) ───────────────────────────────── */
+.pulse-ring {
+  position: relative;
+}
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-gold);
+  animation: pulseRing 1.5s ease-out infinite;
+}
+@keyframes pulseRing {
+  0%   { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
