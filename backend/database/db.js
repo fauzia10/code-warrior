@@ -10,7 +10,9 @@
 const path = require('path');
 const fs   = require('fs');
 
-const DB_PATH = path.join(__dirname, 'game.db');
+const isVercel = process.env.VERCEL;
+const ORIGINAL_DB_PATH = path.join(__dirname, 'game.db');
+const DB_PATH = isVercel ? path.join('/tmp', 'game.db') : ORIGINAL_DB_PATH;
 
 let db; // Will hold the sql.js Database instance
 
@@ -19,11 +21,21 @@ async function initDB() {
   const initSqlJs = require('sql.js');
   const SQL = await initSqlJs();
 
+  // On Vercel, copy the original database template to the writable /tmp directory if not present
+  if (isVercel && !fs.existsSync(DB_PATH) && fs.existsSync(ORIGINAL_DB_PATH)) {
+    try {
+      fs.copyFileSync(ORIGINAL_DB_PATH, DB_PATH);
+      console.log('✅ Database template copied to writable /tmp directory');
+    } catch (e) {
+      console.error('❌ Failed to copy database template to /tmp:', e);
+    }
+  }
+
   // Load existing DB file, or create a fresh one
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH);
     db = new SQL.Database(fileBuffer);
-    console.log('✅ Database loaded from disk');
+    console.log('✅ Database loaded from:', DB_PATH);
   } else {
     db = new SQL.Database();
     console.log('✅ New database created');

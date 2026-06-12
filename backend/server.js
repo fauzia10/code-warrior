@@ -17,6 +17,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Lazy-load database middleware for serverless/Vercel compatibility
+let dbInitialized = false;
+let dbInitPromise = null;
+
+async function ensureDB() {
+  if (!dbInitialized) {
+    if (!dbInitPromise) {
+      dbInitPromise = initDB().then(() => {
+        dbInitialized = true;
+      });
+    }
+    await dbInitPromise;
+  }
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use('/api/auth',        require('./routes/auth'));
 app.use('/api/game',        require('./routes/game'));
 app.use('/api/profile',     require('./routes/profile'));
@@ -39,14 +63,18 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected server error occurred.' });
 });
 
-// ── Initialize DB first, then start server ────────────────────────────────
-initDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`\n⚔️  Code Warrior Backend running at http://localhost:${PORT}`);
-    console.log(`📡  Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🌐  Open the game: http://localhost:${PORT}\n`);
+// ── Initialize DB and start server locally (ignored on Vercel) ─────────────
+if (!process.env.VERCEL) {
+  ensureDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n⚔️  Code Warrior Backend running at http://localhost:${PORT}`);
+      console.log(`📡  Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🌐  Open the game: http://localhost:${PORT}\n`);
+    });
+  }).catch(err => {
+    console.error('❌ Failed to initialize database:', err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('❌ Failed to initialize database:', err);
-  process.exit(1);
-});
+}
+
+module.exports = app;

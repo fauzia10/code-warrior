@@ -1,0 +1,5 @@
+node_modules/
+code-warrior/
+.env
+backend/database/game.db-journal
+backend/database/game.db-wal
