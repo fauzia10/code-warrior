@@ -4,7 +4,7 @@ const jwt    = require('jsonwebtoken');
 const { dbGet, dbRun } = require('../database/db');
 
 function createToken(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ userId }, process.env.JWT_SECRET || 'code_warrior_fallback_secret_key', { expiresIn: '7d' });
 }
 
 // ─── POST /api/auth/register ────────────────────────────────────────────────

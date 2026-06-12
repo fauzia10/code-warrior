@@ -17,7 +17,7 @@ function authMiddleware(req, res, next) {
 
   try {
     // jwt.verify throws an error if the token is invalid or expired
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'code_warrior_fallback_secret_key');
     req.userId = decoded.userId; // Attach userId to every request
     next(); // Pass control to the actual route handler
   } catch (error) {
