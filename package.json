@@ -1,0 +1,12 @@
+{
+  "name": "code-warrior",
+  "version": "1.0.0",
+  "description": "Code Warrior: The Placement Quest",
+  "main": "backend/server.js",
+  "scripts": {
+    "install-backend": "cd backend && npm install",
+    "build": "npm run install-backend",
+    "start": "cd backend && node database/seed.js && node server.js",
+    "dev": "cd backend && npm run dev"
+  }
+}

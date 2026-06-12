@@ -4,7 +4,7 @@
 // This keeps our code DRY (Don't Repeat Yourself).
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = window.location.origin.startsWith('file://') ? 'http://localhost:5000/api' : '/api';
 
 // ── Get the stored JWT token ──────────────────────────────────────────────
 function getToken() {
